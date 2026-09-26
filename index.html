@@ -229,6 +229,10 @@
   .card-attrs { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { font-size: clamp(10px, 1vw, 12px); color: var(--koren-ink-soft); background: var(--koren-surface-2); border: 1px solid var(--koren-border); border-radius: 999px; padding: 4px 10px; }
 
+  .card-colors { display: flex; align-items: center; gap: 5px; }
+  .card-color-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--koren-border-strong); flex: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5); }
+  .card-color-more { font-size: 10.5px; color: var(--koren-ink-soft); font-weight: 700; }
+
   .card-footer { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; padding-top: 6px; gap: 8px; }
   .price-block { display: flex; flex-direction: column; }
   .price-compare { font-size: 12px; color: var(--koren-ink-soft); text-decoration: line-through; }
@@ -259,6 +263,20 @@
 
   .sheet-info-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   @media (max-width: 640px) { .sheet-info-chips { justify-content: center; } }
+
+  .sheet-color-section { margin-top: 18px; }
+  @media (max-width: 640px) { .sheet-color-section { align-self: stretch; text-align: center; } }
+  .sheet-color-label { font-size: 12.5px; font-weight: 700; color: var(--koren-ink-soft); margin-bottom: 8px; }
+  .sheet-color-label b { color: var(--koren-ink); font-weight: 800; }
+  .sheet-color-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+  @media (max-width: 640px) { .sheet-color-swatches { justify-content: center; } }
+  .sheet-color-swatch {
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer; flex: none;
+    border: 2px solid var(--koren-surface); box-shadow: 0 0 0 1.5px var(--koren-border-strong), inset 0 0 0 1px rgba(255,255,255,0.4);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .sheet-color-swatch:active { transform: scale(0.92); }
+  .sheet-color-swatch.is-active { box-shadow: 0 0 0 1.5px var(--koren-surface), 0 0 0 4px var(--koren-orange); }
 
   .sheet-price-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding: 14px 18px; background: var(--koren-surface-2); border-radius: 16px; width: fit-content; }
   .sheet-price-stack { display: flex; align-items: baseline; gap: 10px; }
@@ -411,9 +429,19 @@
    *                  מתיקיית-המוצר, לא נערך ישירות כאן.
    *   featured       (רשות, ברירת-מחדל false) — מוצג ברצועת "המבצעים
    *                  החמים" בעמוד הבית.
+   *   colors         (רשות) — וריאנטים-של-צבע לאותו מוצר בדיוק (כל שאר
+   *                  הפרמטרים זהים, רק התמונה משתנה). מערך של
+   *                  {name, swatch, images}: name=שם-הצבע (טקסט-חופשי),
+   *                  swatch=צבע-הכדור-לבחירה (קוד-HEX), images=מערך-
+   *                  תמונות (נגזר-אוטומטית מקוד-הדגם-של-אותו-צבע, בדיוק
+   *                  כמו images ברמת-המוצר). קיים רק אם הוגדרו-בפועל
+   *                  2+ צבעים למוצר הזה במערכת-הניהול - בלי זה, אין
+   *                  שום שינוי בהתנהגות (התמונה הרגילה של המוצר מוצגת
+   *                  כרגיל). כשקיים: מוצג בורר-צבעים בכרטיס (רמז בלבד,
+   *                  נקודות-צבע קטנות) ובחלון-הצף (לחיץ, מחליף-תמונה).
    * ============================================================ */
 
-  var KIOSK_DATA = {"categories":[{"id":"blenders","label":"בלנדרים","subCategories":[{"id":"blenderShaker","label":"בלנדר ושייקר"},{"id":"blenderStick","label":"בלנדר מוט"}],"image":"categories/blenders.png"},{"id":"kettles","label":"קומקומים","subCategories":null,"image":"categories/kettles.png"},{"id":"toasters","label":"מצנמים","subCategories":null,"image":"categories/toasters.png"},{"id":"panini","label":"טוסטר לחיצה","subCategories":null,"image":"categories/panini.png"},{"id":"mixers","label":"מיקסרים","subCategories":[{"id":"mixerStand","label":"מיקסרים"},{"id":"mixerHand","label":"מיקסר יד"}],"image":"categories/mixers.png"},{"id":"hairBeauty","label":"מייבשי שיער וביוטי","subCategories":null,"image":"categories/hairBeauty.png"},{"id":"grooming","label":"מכונות תספורת וגילוח","subCategories":[{"id":"hairClipper","label":"מכונות תספורת"},{"id":"shaver","label":"מכונות גילוח"}],"image":"categories/grooming.png"},{"id":"microwaves","label":"מיקרוגלים","subCategories":null,"image":"categories/microwaves.png"},{"id":"toasterOven","label":"טוסטר אובן","subCategories":null,"image":"categories/toasterOven.png"},{"id":"coffeeWorld","label":"עולם הקפה","subCategories":[{"id":"coffeeMachines","label":"מכונות קפה"},{"id":"milkFrothers","label":"מקציפי חלב"},{"id":"coffeeGrinders","label":"מטחנות קפה"}],"image":"categories/coffeeWorld.png"},{"id":"fans","label":"מאווררים","subCategories":[{"id":"fanStand","label":"מאווררי עמוד"},{"id":"fanTower","label":"מאווררי מגדל"},{"id":"fanCeiling","label":"מאווררי תקרה"},{"id":"airCoolers","label":"מצנני אוויר"}],"image":"categories/fans.png"},{"id":"irons","label":"מגהצים","subCategories":[{"id":"ironSteam","label":"מגהצי אדים"},{"id":"ironVerticalSteam","label":"מגהצי קיטור"},{"id":"ironingSystem","label":"מערכות גיהוץ"}],"image":"categories/irons.png"},{"id":"vacuums","label":"שואבי אבק","subCategories":[{"id":"vacuumHandheld","label":"שואב ידני\\אלחוטי"},{"id":"vacuumUpright","label":"שואב נגרר"}],"image":"categories/vacuums.png"},{"id":"mopVacuums","label":"שואבים שוטפים","subCategories":null,"image":"categories/mopVacuums.png"},{"id":"cooktops","label":"כיריים על השיש","subCategories":null,"image":"categories/cooktops.png"},{"id":"juicers","label":"מסחטות מיצים","subCategories":[{"id":"juicerCitrus","label":"מסחטות מיץ הדר"},{"id":"juicerHeavyDuty","label":"מסחטות מיצים קשים\\מקצועיות"}],"image":"categories/juicers.png"},{"id":"iceMakers","label":"מכונות קרח","subCategories":null,"image":"categories/iceMakers.png"},{"id":"other","label":"אחר","subCategories":null,"image":"categories/other.png"}],"products":[{"sku":"CB153","category":"blenders","subCategory":"blenderShaker","title":"בלנדר עוצמתי 2 ב-1 Ninja Twisti 1100W נינג\u0027ה","modelCode":"CB153","price":460,"compareAtPrice":null,"brand":"נינג\u0027ה","supplier":"שריג אלקטריק","warranty":"חמש שנות אחריות מלאות! (מותנה ברישום האחריות באתר \"שריג\")","featured":false,"images":["images/CB153/1.png","images/CB153/2.png","images/CB153/3.png","images/CB153/4.png","images/CB153/5.png","images/CB153/6.png","images/CB153/7.png"],"details":"\u003cp\u003eבלנדר 2 ב-1 Power Nutri עם כנפי ערבול - למגוון מרקמים שניתן לאכול בכפית או לשתות בקשית.\u003c/p\u003e\u003cul\u003e\u003cli\u003eכולל פאנל תצוגה מתקדם בעברית\u003c/li\u003e\u003cli\u003eעוצמה: עוצמה גבוהה של 1100W עם מנוע smartTORQUE חדשני המיועד לעומסים כבדים במהירות גבוהה ומבלי לאבד את העוצמה\u003c/li\u003e\u003cli\u003eמתאים לריסוק וטחינה של מוצרי מזון קפואים, קרח ורכיבי המזון הקשים ביותר\u003c/li\u003e\u003cli\u003eלהבים: לנינג\u0027ה טוויסטי מכלול להבים ייחודי עם להבי HYBRID EDGE™, שישה להבים עוצמתיים ויחודיים לערבול וריסוק קרח, ירקות ופירות שלמים, אגוזים וזרעים למשקאות במרקם מושלם\u003c/li\u003e\u003cli\u003eמרסק בקלות פירות וירקות טריים שלמים, עלים ירוקים, פירות קפואים, קרח, אגוזים, זרעים וכו\u0027 כולל טיימר דיגיטלי להצגת זמן העבודה\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eמגוון תוכניות לבחירה\u003c/h4\u003e\u003cp\u003eטכנולוגיית Auto IQ System – חמש תוכניות חכמות בעברית למגוון רחב של מרקמים ולתוצאות שאפשר לאכול בכפית או לשתות בקשית והכל בלחיצת כפתור אחת:\u003c/p\u003e\u003cul\u003e\u003cli\u003eערבול – להכנת סמוד\u0027יז ומילקשייקים מהרכיבים האהובים עליכם, טריים או קפואים, נוזלים ואבקות\u003c/li\u003e\u003cli\u003eריסוק – לריסוק קרח ולתוצאות מושלמות מהרכיבים הקשים ביותר כגון אגוזים, זרעים ואפילו פירות קפואים\u003c/li\u003e\u003cli\u003eברד – להכנת קוקטיילים, משקאות קפואים וברד לילדים\u003c/li\u003e\u003cli\u003eממרח – להכנת ממרחים עם מעט נוזלים החל מחמאות בוטנים, חומוס ועד רטבים\u003c/li\u003e\u003cli\u003eסמודי בול – להכנת קערות סמודי חלקות וסמיכות, פרוזן יוגורט קרמי וסורבה מרענן\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eמאפיינים נוספים\u003c/h4\u003e\u003cul\u003e\u003cli\u003eמכל ערבול Power Nutri בנפח 1 ליטר עם מכסה הכולל כנפי ערבול (פטנט ייחודי) - סובבו את כנפי הערבול בשימוש ברכיבים סמיכים כדי לדחוף את הרכיבים מטה קרוב יותר אל פני הלהב\u003c/li\u003e\u003cli\u003eכוס Power Nutri כוס בנפח 700 מ\"ל עם מכסה לגימה להכנת משקאות במרקם מושלם שאפשר פשוט לקחת איתכם לדרך\u003c/li\u003e\u003cli\u003eפאנל תצוגה מתקדם בעברית – קל לשימוש עם 5 תכניות אוטומטיות חכמות, כפתור פולס וכפתור הפעלה\u003c/li\u003e\u003cli\u003eמגיע עם חוברת מתכונים בעברית\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eמימדים\u003c/h4\u003e\u003cul\u003e\u003cli\u003eאורך: 16.5 ס\"מ\u003c/li\u003e\u003cli\u003eרוחב: 21 ס\"מ\u003c/li\u003e\u003cli\u003eגובה: 35 ס\"מ\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eהערות\u003c/h4\u003e\u003cp\u003eהמכלים ניתנים לשטיפה במדיח כלים\u003c/p\u003e"}]};
+  var KIOSK_DATA = {"categories":[{"id":"blenders","label":"בלנדרים","subCategories":[{"id":"blenderShaker","label":"בלנדר ושייקר"},{"id":"blenderStick","label":"בלנדר מוט"}],"image":"categories/blenders.png"},{"id":"kettles","label":"קומקומים","subCategories":null,"image":"categories/kettles.png"},{"id":"toasters","label":"מצנמים","subCategories":null,"image":"categories/toasters.png"},{"id":"panini","label":"טוסטר לחיצה","subCategories":null,"image":"categories/panini.png"},{"id":"mixers","label":"מיקסרים","subCategories":[{"id":"mixerStand","label":"מיקסרים"},{"id":"mixerHand","label":"מיקסר יד"}],"image":"categories/mixers.png"},{"id":"hairBeauty","label":"מייבשי שיער וביוטי","subCategories":null,"image":"categories/hairBeauty.png"},{"id":"grooming","label":"מכונות תספורת וגילוח","subCategories":[{"id":"hairClipper","label":"מכונות תספורת"},{"id":"shaver","label":"מכונות גילוח"}],"image":"categories/grooming.png"},{"id":"microwaves","label":"מיקרוגלים","subCategories":null,"image":"categories/microwaves.png"},{"id":"toasterOven","label":"טוסטר אובן","subCategories":null,"image":"categories/toasterOven.png"},{"id":"coffeeWorld","label":"עולם הקפה","subCategories":[{"id":"coffeeMachines","label":"מכונות קפה"},{"id":"milkFrothers","label":"מקציפי חלב"},{"id":"coffeeGrinders","label":"מטחנות קפה"}],"image":"categories/coffeeWorld.png"},{"id":"fans","label":"מאווררים","subCategories":[{"id":"fanStand","label":"מאווררי עמוד"},{"id":"fanTower","label":"מאווררי מגדל"},{"id":"fanCeiling","label":"מאווררי תקרה"},{"id":"airCoolers","label":"מצנני אוויר"}],"image":"categories/fans.png"},{"id":"irons","label":"מגהצים","subCategories":[{"id":"ironSteam","label":"מגהצי אדים"},{"id":"ironVerticalSteam","label":"מגהצי קיטור"},{"id":"ironingSystem","label":"מערכות גיהוץ"}],"image":"categories/irons.png"},{"id":"vacuums","label":"שואבי אבק","subCategories":[{"id":"vacuumHandheld","label":"שואב ידני\\אלחוטי"},{"id":"vacuumUpright","label":"שואב נגרר"}],"image":"categories/vacuums.png"},{"id":"mopVacuums","label":"שואבים שוטפים","subCategories":null,"image":"categories/mopVacuums.png"},{"id":"cooktops","label":"כיריים על השיש","subCategories":null,"image":"categories/cooktops.png"},{"id":"juicers","label":"מסחטות מיצים","subCategories":[{"id":"juicerCitrus","label":"מסחטות מיץ הדר"},{"id":"juicerHeavyDuty","label":"מסחטות מיצים קשים\\מקצועיות"}],"image":"categories/juicers.png"},{"id":"iceMakers","label":"מכונות קרח","subCategories":null,"image":"categories/iceMakers.png"},{"id":"other","label":"אחר","subCategories":null,"image":"categories/other.png"}],"products":[{"sku":"CB153","category":"blenders","subCategory":"blenderShaker","title":"בלנדר עוצמתי 2 ב-1 Ninja Twisti 1100W נינג\u0027ה","modelCode":"CB153","price":490,"compareAtPrice":null,"brand":"נינג\u0027ה","supplier":"שריג אלקטריק","warranty":"חמש שנות אחריות מלאות! (מותנה ברישום האחריות באתר \"שריג\")","featured":false,"images":["images/CB153/1.png","images/CB153/2.png","images/CB153/3.png","images/CB153/4.png","images/CB153/5.png","images/CB153/6.png","images/CB153/7.png"],"colors":[],"details":"\u003cp\u003eבלנדר 2 ב-1 Power Nutri עם כנפי ערבול - למגוון מרקמים שניתן לאכול בכפית או לשתות בקשית.\u003c/p\u003e\u003cul\u003e\u003cli\u003eכולל פאנל תצוגה מתקדם בעברית\u003c/li\u003e\u003cli\u003eעוצמה: עוצמה גבוהה של 1100W עם מנוע smartTORQUE חדשני המיועד לעומסים כבדים במהירות גבוהה ומבלי לאבד את העוצמה\u003c/li\u003e\u003cli\u003eמתאים לריסוק וטחינה של מוצרי מזון קפואים, קרח ורכיבי המזון הקשים ביותר\u003c/li\u003e\u003cli\u003eלהבים: לנינג\u0027ה טוויסטי מכלול להבים ייחודי עם להבי HYBRID EDGE™, שישה להבים עוצמתיים ויחודיים לערבול וריסוק קרח, ירקות ופירות שלמים, אגוזים וזרעים למשקאות במרקם מושלם\u003c/li\u003e\u003cli\u003eמרסק בקלות פירות וירקות טריים שלמים, עלים ירוקים, פירות קפואים, קרח, אגוזים, זרעים וכו\u0027 כולל טיימר דיגיטלי להצגת זמן העבודה\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eמגוון תוכניות לבחירה\u003c/h4\u003e\u003cp\u003eטכנולוגיית Auto IQ System – חמש תוכניות חכמות בעברית למגוון רחב של מרקמים ולתוצאות שאפשר לאכול בכפית או לשתות בקשית והכל בלחיצת כפתור אחת:\u003c/p\u003e\u003cul\u003e\u003cli\u003eערבול – להכנת סמוד\u0027יז ומילקשייקים מהרכיבים האהובים עליכם, טריים או קפואים, נוזלים ואבקות\u003c/li\u003e\u003cli\u003eריסוק – לריסוק קרח ולתוצאות מושלמות מהרכיבים הקשים ביותר כגון אגוזים, זרעים ואפילו פירות קפואים\u003c/li\u003e\u003cli\u003eברד – להכנת קוקטיילים, משקאות קפואים וברד לילדים\u003c/li\u003e\u003cli\u003eממרח – להכנת ממרחים עם מעט נוזלים החל מחמאות בוטנים, חומוס ועד רטבים\u003c/li\u003e\u003cli\u003eסמודי בול – להכנת קערות סמודי חלקות וסמיכות, פרוזן יוגורט קרמי וסורבה מרענן\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eמאפיינים נוספים\u003c/h4\u003e\u003cul\u003e\u003cli\u003eמכל ערבול Power Nutri בנפח 1 ליטר עם מכסה הכולל כנפי ערבול (פטנט ייחודי) - סובבו את כנפי הערבול בשימוש ברכיבים סמיכים כדי לדחוף את הרכיבים מטה קרוב יותר אל פני הלהב\u003c/li\u003e\u003cli\u003eכוס Power Nutri כוס בנפח 700 מ\"ל עם מכסה לגימה להכנת משקאות במרקם מושלם שאפשר פשוט לקחת איתכם לדרך\u003c/li\u003e\u003cli\u003eפאנל תצוגה מתקדם בעברית – קל לשימוש עם 5 תכניות אוטומטיות חכמות, כפתור פולס וכפתור הפעלה\u003c/li\u003e\u003cli\u003eמגיע עם חוברת מתכונים בעברית\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eמימדים\u003c/h4\u003e\u003cul\u003e\u003cli\u003eאורך: 16.5 ס\"מ\u003c/li\u003e\u003cli\u003eרוחב: 21 ס\"מ\u003c/li\u003e\u003cli\u003eגובה: 35 ס\"מ\u003c/li\u003e\u003c/ul\u003e\u003ch4\u003eהערות\u003c/h4\u003e\u003cp\u003eהמכלים ניתנים לשטיפה במדיח כלים\u003c/p\u003e"}]};
 
   /* ---------------- icons (19, one per category above) ---------------- */
   function svg(inner) { return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'; }
@@ -476,6 +504,22 @@
     if (p.images && p.images.length) return p.images;
     if (p.image) return [p.image];
     return [];
+  }
+
+  function productColors(p) {
+    return (p.colors && p.colors.length) ? p.colors : [];
+  }
+
+  function cardColorDotsHtml(p) {
+    var colors = productColors(p);
+    if (!colors.length) return "";
+    var maxDots = 5;
+    var shown = colors.slice(0, maxDots);
+    var dots = shown.map(function (c) {
+      return '<span class="card-color-dot" style="background:' + escapeAttr(c.swatch || "#cccccc") + '" title="' + escapeAttr(c.name || "") + '"></span>';
+    }).join("");
+    var more = colors.length > maxDots ? '<span class="card-color-more">+' + (colors.length - maxDots) + '</span>' : "";
+    return '<span class="card-colors">' + dots + more + '</span>';
   }
 
   function mediaMarkup(imgSrc) {
@@ -542,6 +586,7 @@
       '<span class="card-body">' +
         '<span class="card-title">' + escapeHtml(p.title) + '</span>' +
         '<span class="card-attrs">' + attrs + '</span>' +
+        cardColorDotsHtml(p) +
         '<span class="card-footer">' +
           '<span class="price-block">' + compare + '<span class="price">' + fmtPrice(p.price) + '</span></span>' +
           '<span class="avail">✓ זמין</span>' +
@@ -706,6 +751,8 @@
   /* ---------------- PRODUCT OVERLAY ---------------- */
   var galleryImages = [];
   var galleryIndex = 0;
+  var activeColors = [];
+  var activeColorIndex = 0;
   function updateGalleryImage() {
     var img = document.querySelector(".sheet-media [data-gallery-img]");
     if (img) img.src = galleryImages[galleryIndex];
@@ -716,13 +763,56 @@
   function galleryPrev() { galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length; updateGalleryImage(); }
   function galleryNext() { galleryIndex = (galleryIndex + 1) % galleryImages.length; updateGalleryImage(); }
 
+  function wireGalleryButtons(sheetEl) {
+    var prevBtn = sheetEl.querySelector('[data-action="gallery-prev"]');
+    var nextBtn = sheetEl.querySelector('[data-action="gallery-next"]');
+    if (prevBtn) prevBtn.addEventListener("click", galleryPrev);
+    if (nextBtn) nextBtn.addEventListener("click", galleryNext);
+    Array.prototype.forEach.call(sheetEl.querySelectorAll('[data-action="gallery-dot"]'), function (dot) {
+      dot.addEventListener("click", function () { galleryIndex = parseInt(dot.getAttribute("data-idx"), 10); updateGalleryImage(); });
+    });
+  }
+
+  function colorSwatchesHtml(colors, activeIdx) {
+    var swatches = colors.map(function (c, i) {
+      return '<span class="sheet-color-swatch' + (i === activeIdx ? ' is-active' : '') + '" data-action="pick-color" data-idx="' + i +
+        '" style="background:' + escapeAttr(c.swatch || "#cccccc") + '" title="' + escapeAttr(c.name || "") + '"></span>';
+    }).join("");
+    var activeName = escapeHtml((colors[activeIdx] && colors[activeIdx].name) || "");
+    return '<div class="sheet-color-section">' +
+      '<div class="sheet-color-label">בחרו צבע' + (activeName ? ' — נבחר: <b>' + activeName + '</b>' : '') + '</div>' +
+      '<div class="sheet-color-swatches">' + swatches + '</div>' +
+    '</div>';
+  }
+
+  function switchColor(idx) {
+    if (!activeColors[idx]) return;
+    activeColorIndex = idx;
+    galleryImages = activeColors[idx].images || [];
+    galleryIndex = 0;
+    var mediaEl = document.querySelector(".sheet-media");
+    if (mediaEl) {
+      mediaEl.setAttribute("data-has-image", galleryImages.length ? "true" : "false");
+      mediaEl.classList.remove("img-failed");
+      mediaEl.innerHTML = galleryHtml(galleryImages);
+      wireGalleryButtons(document.getElementById("sheet"));
+    }
+    var labelEl = document.querySelector(".sheet-color-label");
+    if (labelEl) labelEl.innerHTML = "בחרו צבע — נבחר: <b>" + escapeHtml(activeColors[idx].name || "") + "</b>";
+    Array.prototype.forEach.call(document.querySelectorAll(".sheet-color-swatch"), function (sw, i) {
+      sw.classList.toggle("is-active", i === idx);
+    });
+  }
+
   function openProduct(sku) {
     var p = getProducts().filter(function (x) { return x.sku === sku; })[0];
     if (!p) return;
     var cat = catByPid(p.category);
     var hasDiscount = p.compareAtPrice && p.compareAtPrice > p.price;
     var infoChips = productInfoChips(p, "יבואן").map(function (a) { return '<span class="chip">' + escapeHtml(a[0]) + ': ' + escapeHtml(a[1]) + '</span>'; }).join("");
-    galleryImages = productImages(p);
+    activeColors = productColors(p);
+    activeColorIndex = 0;
+    galleryImages = activeColors.length ? (activeColors[0].images || []) : productImages(p);
     galleryIndex = 0;
     document.getElementById("sheet").innerHTML =
       '<div class="sheet-close-bar"><button class="sheet-close" data-action="close-sheet">' +
@@ -734,6 +824,7 @@
           '<h3 class="sheet-title">' + escapeHtml(p.title) + '</h3>' +
           (p.modelCode ? '<div class="sheet-model-code">קוד דגם: ' + escapeHtml(p.modelCode) + '</div>' : '') +
           (infoChips ? '<div class="sheet-info-chips">' + infoChips + '</div>' : '') +
+          (activeColors.length ? colorSwatchesHtml(activeColors, activeColorIndex) : '') +
           '<div class="sheet-price-row">' +
             '<span class="sheet-price-stack">' +
               (hasDiscount ? '<span class="sheet-price-compare">' + fmtPrice(p.compareAtPrice) + '</span>' : '') +
@@ -748,12 +839,9 @@
       (p.details ? '<div class="sheet-details">' + p.details + '</div>' : '');
     var sheetEl = document.getElementById("sheet");
     sheetEl.querySelector('[data-action="close-sheet"]').addEventListener("click", closeProduct);
-    var prevBtn = sheetEl.querySelector('[data-action="gallery-prev"]');
-    var nextBtn = sheetEl.querySelector('[data-action="gallery-next"]');
-    if (prevBtn) prevBtn.addEventListener("click", galleryPrev);
-    if (nextBtn) nextBtn.addEventListener("click", galleryNext);
-    Array.prototype.forEach.call(sheetEl.querySelectorAll('[data-action="gallery-dot"]'), function (dot) {
-      dot.addEventListener("click", function () { galleryIndex = parseInt(dot.getAttribute("data-idx"), 10); updateGalleryImage(); });
+    wireGalleryButtons(sheetEl);
+    Array.prototype.forEach.call(sheetEl.querySelectorAll('[data-action="pick-color"]'), function (sw) {
+      sw.addEventListener("click", function () { switchColor(parseInt(sw.getAttribute("data-idx"), 10)); });
     });
     overlay.classList.add("is-active");
   }
