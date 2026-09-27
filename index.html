@@ -199,8 +199,14 @@
        don't support `aspect-ratio` (confirmed 2026-09-27: cards collapsed to 0 height,
        showing no photo AND no fallback icon, while `.tile` - which already had an
        explicit min-height as a belt-and-suspenders fallback - kept working). This old
-       padding-percentage trick works in every browser back to early 2000s CSS support. */
-    position: relative; overflow: hidden; height: 0;
+       padding-percentage trick works in every browser back to early 2000s CSS support.
+       `display:block` is required here too: these are <span> elements (inline by
+       default), and position:absolute children of an inline positioned ancestor are
+       NOT reliably placed in older browser engines even though the padding-top box
+       itself renders visually correctly (confirmed 2026-09-27, same session - proportions
+       looked right but photos still didn't render until this was added; .tile-photo,
+       which already had `display:flex`, never had this problem). */
+    display: block; position: relative; overflow: hidden; height: 0;
   }
   .card-media { padding-top: 75%; background: #ffffff; border-bottom: 1px solid var(--koren-border); }
   .sheet-media {
