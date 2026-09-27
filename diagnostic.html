@@ -63,6 +63,19 @@
   .grid3 .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(96,0,153,0.4) 0 4px, transparent 4px 20px), #ecd7ff; }
   .grid3 .card-media[data-has-image="true"] .media-fallback { display: none; }
   .grid3 .card-body { padding: 8px; font-size: 13px; }
+
+  /* סעיף 13 - גישה חדשה לגמרי, מבוססת על .tile שכבר עובד תמיד על המכשיר האמיתי:
+     ה-grid-item עצמו (.card) מקבל min-height מפורש (לא card-media!), וה-card-media
+     מקבלת flex:1 1 auto (למלא את מה שנשאר) במקום height קבוע - בדיוק כמו
+     .tile{aspect-ratio+min-height} + .tile-photo{flex:1 1 auto;min-height:0}. */
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid4 .card { background: #fff; border: 2px solid #069; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; min-height: clamp(140px, 24vw, 280px); }
+  .grid4 .card-media { display: block; position: relative; overflow: hidden; background: #fff; border-bottom: 1px solid #ccc; flex: 1 1 auto; min-height: 0; }
+  .grid4 .card-body { flex: 0 0 auto; }
+  .grid4 .card-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .grid4 .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(0,102,153,0.4) 0 4px, transparent 4px 20px), #cceeff; }
+  .grid4 .card-media[data-has-image="true"] .media-fallback { display: none; }
+  .grid4 .card-body { padding: 8px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -167,6 +180,24 @@
 
 <script>
   document.getElementById("grid3Host").innerHTML = demoSkus.map(function (sku) {
+    return '<button class="card" data-sku="' + sku + '">' +
+      '<span class="card-media" data-has-image="true">' +
+        '<img src="images/KLF03/1.png" alt="">' +
+        '<span class="media-fallback">FALLBACK</span>' +
+      '</span>' +
+      '<span class="card-body">מוצר לדוגמה ' + sku + '</span>' +
+    '</button>';
+  }).join("");
+</script>
+
+<div class="row" style="border-color:#069;">
+  <div class="label">13. שחזור-מלא (גישה חדשה - מבוססת .tile שכבר עובד: min-height על הכרטיס עצמו, flex:1 1 auto על card-media):</div>
+  <div class="grid4" id="grid4Host"></div>
+  <div id="grid4Verdict" class="measure"></div>
+</div>
+
+<script>
+  document.getElementById("grid4Host").innerHTML = demoSkus.map(function (sku) {
     return '<button class="card" data-sku="' + sku + '">' +
       '<span class="card-media" data-has-image="true">' +
         '<img src="images/KLF03/1.png" alt="">' +
@@ -297,6 +328,7 @@ function checkGridGeneric(hostSelector, outId) {
 function checkRealGrid() { checkGridGeneric("#realGridHost", "realGridVerdict"); }
 function checkGrid2() { checkGridGeneric("#grid2Host", "grid2Verdict"); }
 function checkGrid3() { checkGridGeneric("#grid3Host", "grid3Verdict"); }
+function checkGrid4() { checkGridGeneric("#grid4Host", "grid4Verdict"); }
 
 setTimeout(function () {
   measureBox(".box", "box1measure");
@@ -307,6 +339,7 @@ setTimeout(function () {
   checkRealGrid();
   checkGrid2();
   checkGrid3();
+  checkGrid4();
 }, 1200);
 </script>
 </body>
