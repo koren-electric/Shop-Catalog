@@ -23,6 +23,12 @@
   .box2 img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
   #uaBox { word-break: break-all; background: #f2f2f2; padding: 10px; border-radius: 6px; font-size: 15px; }
   .measure { font-size: 22px; font-weight: 900; }
+
+  /* בדיוק ה-CSS האמיתי מהקטלוג, כדי לשחזר את המבנה המלא (img + media-fallback) */
+  .real-card-media { display: block; position: relative; overflow: hidden; height: 0; padding-top: 75%; background: #fff; width: 300px; border: 4px solid #900; }
+  .real-card-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+  .real-media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(200,95,34,0.4) 0 4px, transparent 4px 20px), #ffe0c2; }
+  .real-card-media[data-has-image="true"] .real-media-fallback { display: none; }
 </style>
 </head>
 <body>
@@ -67,6 +73,20 @@
   <div id="dynNoLazyBox"></div>
   <div id="dynNoLazyMeasure" class="measure"></div>
 </div>
+
+<div class="row">
+  <div class="label">8. שחזור מדויק של הכרטיס האמיתי (button + card-media + img + media-fallback, בדיוק כמו בקטלוג):</div>
+  <div id="realCardHost"></div>
+  <div id="realCardVerdict" class="measure"></div>
+</div>
+
+<script>
+  document.getElementById("realCardHost").innerHTML =
+    '<button class="real-card-media" data-has-image="true">' +
+      '<img src="images/KLF03/1.png" alt="">' +
+      '<span class="real-media-fallback">אני ה-FALLBACK (אם אתה רואה אותי, זו הבעיה)</span>' +
+    '</button>';
+</script>
 
 <script>
   document.getElementById("dynLazyBox").innerHTML =
@@ -125,11 +145,33 @@ function measureBoxIn(container, outId) {
     " | תיבה: רוחב=" + Math.round(r.width) + " גובה=" + Math.round(r.height) +
     " | תמונה-בפנים: רוחב=" + Math.round(imgR.width) + " גובה=" + Math.round(imgR.height);
 }
+function checkRealCard() {
+  var card = document.querySelector(".real-card-media");
+  var img = card.querySelector("img");
+  var fb = card.querySelector(".real-media-fallback");
+  var fbStyle = getComputedStyle(fb);
+  var r = card.getBoundingClientRect();
+  var cx = r.left + r.width / 2;
+  var cy = r.top + r.height / 2;
+  var topElement = document.elementFromPoint(cx, cy);
+  var topIsImg = topElement === img;
+  var topIsFallback = fb.contains(topElement) || topElement === fb;
+  var lines = [];
+  lines.push("fallback-ה display המחושב בפועל: <b>" + fbStyle.display + "</b> " +
+    (fbStyle.display === "none" ? '<span class="ok">(תקין - אמור להיות מוסתר)</span>' : '<span class="bad">(בעיה! אמור להיות none כי data-has-image=true)</span>'));
+  lines.push("מה יושב בפועל במרכז התיבה (elementFromPoint): <b>" +
+    (topIsImg ? "התמונה עצמה" : (topIsFallback ? "ה-FALLBACK (מכסה את התמונה!)" : (topElement ? topElement.tagName + "." + topElement.className : "כלום"))) +
+    "</b> " + (topIsImg ? '<span class="ok">✓ תקין</span>' : '<span class="bad">✗ זו הבעיה</span>'));
+  lines.push("גודל img בפועל (getBoundingClientRect): " + Math.round(img.getBoundingClientRect().width) + "x" + Math.round(img.getBoundingClientRect().height));
+  document.getElementById("realCardVerdict").innerHTML = lines.join("<br>");
+}
+
 setTimeout(function () {
   measureBox(".box", "box1measure");
   measureBox(".box2", "box2measure");
   measureBoxIn(document.getElementById("dynLazyBox"), "dynLazyMeasure");
   measureBoxIn(document.getElementById("dynNoLazyBox"), "dynNoLazyMeasure");
+  checkRealCard();
 }, 1200);
 </script>
 </body>
