@@ -83,7 +83,7 @@
     width: clamp(104px, 12vw, 130px); min-width: clamp(104px, 12vw, 130px); flex: none; scroll-snap-align: start;
     border: 2px solid var(--koren-orange); box-shadow: 0 5px 16px rgba(200,95,34,0.22);
   }
-  .featured-card .card-media { aspect-ratio: 1/1; }
+  .featured-card .card-media { padding-top: 100%; }
   .featured-card .card-media img { padding: 6px; }
   .featured-card .card-body { padding: 7px 8px 9px; gap: 4px; }
   .featured-card .card-title {
@@ -194,16 +194,22 @@
   .card:active { transform: scale(0.97); box-shadow: 0 2px 6px rgba(33,23,17,0.08); }
 
   .card-media, .sheet-media {
-    position: relative; overflow: hidden;
+    /* height:0 + padding-top:X% is used instead of the CSS `aspect-ratio` property on
+       purpose - the Tizen/Samsung-Internet browsers actually used on the kiosk screen
+       don't support `aspect-ratio` (confirmed 2026-09-27: cards collapsed to 0 height,
+       showing no photo AND no fallback icon, while `.tile` - which already had an
+       explicit min-height as a belt-and-suspenders fallback - kept working). This old
+       padding-percentage trick works in every browser back to early 2000s CSS support. */
+    position: relative; overflow: hidden; height: 0;
   }
-  .card-media { aspect-ratio: 4/3; background: #ffffff; border-bottom: 1px solid var(--koren-border); }
+  .card-media { padding-top: 75%; background: #ffffff; border-bottom: 1px solid var(--koren-border); }
   .sheet-media {
-    aspect-ratio: 1/1; border-radius: 22px; border: 1px solid var(--koren-border);
+    padding-top: 100%; border-radius: 22px; border: 1px solid var(--koren-border);
     background: #ffffff;
     flex: 0 0 clamp(210px, 30vw, 340px);
   }
   @media (max-width: 640px) { .sheet-media { flex-basis: min(260px, 62vw); } }
-  .card-media img, .sheet-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .card-media img, .sheet-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
   .card-media img { padding: 10px; }
   .sheet-media img { padding: 14px; }
 
@@ -221,7 +227,7 @@
   .gallery-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(200,95,34,0.3); cursor: pointer; }
   .gallery-dot.is-active { background: var(--koren-orange); }
   .media-fallback {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--koren-orange-deep);
+    position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; color: var(--koren-orange-deep);
     background:
       repeating-linear-gradient(135deg, rgba(200,95,34,0.07) 0 2px, transparent 2px 14px),
       var(--koren-surface-2);
