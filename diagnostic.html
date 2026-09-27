@@ -1,0 +1,105 @@
+<!doctype html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>אבחון תצוגה - קורן</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #fff; color: #111; margin: 0; padding: 16px; font-size: 20px; line-height: 1.5; }
+  h1 { font-size: 26px; background: #f5803d; color: #fff; padding: 12px; border-radius: 8px; }
+  .row { border: 3px solid #333; margin: 14px 0; padding: 12px; border-radius: 8px; }
+  .label { font-weight: 900; color: #c85f22; }
+  .ok { color: #0a8a2a; font-weight: 900; }
+  .bad { color: #c00; font-weight: 900; }
+  .box {
+    display: block; position: relative; overflow: hidden; height: 0; padding-top: 75%;
+    background: #eee; border: 4px dashed #f5803d; width: 300px;
+  }
+  .box img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+  .box2 {
+    position: relative; overflow: hidden; aspect-ratio: 4/3;
+    background: #dde; border: 4px dashed #08c; width: 300px;
+  }
+  .box2 img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+  #uaBox { word-break: break-all; background: #f2f2f2; padding: 10px; border-radius: 6px; font-size: 15px; }
+  .measure { font-size: 22px; font-weight: 900; }
+</style>
+</head>
+<body>
+<h1>דף אבחון - למה תמונות לא מוצגות</h1>
+
+<div class="row">
+  <div class="label">1. הדפדפן (User-Agent):</div>
+  <div id="uaBox"></div>
+</div>
+
+<div class="row">
+  <div class="label">2. תמיכת CSS בדפדפן הזה:</div>
+  <div id="cssSupport"></div>
+</div>
+
+<div class="row">
+  <div class="label">3. טעינת תמונה אמיתית מהאתר (images/KLF03/1.png):</div>
+  <div id="imgStatus" class="measure">בודק...</div>
+  <img id="testImg" src="images/KLF03/1.png" style="width:120px;height:90px;object-fit:contain;border:2px solid #333;" alt="">
+</div>
+
+<div class="row">
+  <div class="label">4. תיבה בשיטה החדשה (padding-top, display:block) - התיבה המקווקוות-כתומה אמורה להכיל תמונת קומקום:</div>
+  <div class="box"><img src="images/KLF03/1.png" alt=""></div>
+  <div id="box1measure" class="measure"></div>
+</div>
+
+<div class="row">
+  <div class="label">5. תיבה בשיטה הישנה (aspect-ratio) - התיבה המקווקוות-כחולה אמורה גם היא להכיל תמונת קומקום:</div>
+  <div class="box2"><img src="images/KLF03/1.png" alt=""></div>
+  <div id="box2measure" class="measure"></div>
+</div>
+
+<script>
+document.getElementById("uaBox").textContent = navigator.userAgent;
+
+function supports(prop, val) {
+  try { return CSS && CSS.supports && CSS.supports(prop, val); } catch (e) { return "CSS.supports not available"; }
+}
+var supportLines = [
+  "aspect-ratio: " + supports("aspect-ratio", "1/1"),
+  "display:flex: " + supports("display", "flex"),
+  "position:absolute + inset: " + supports("inset", "0"),
+  "padding-top percentage (always true if CSS works at all): " + supports("padding-top", "50%")
+];
+document.getElementById("cssSupport").innerHTML = supportLines.map(function (l) {
+  var ok = l.indexOf("true") !== -1;
+  return '<div class="' + (ok ? "ok" : (l.indexOf("false") !== -1 ? "bad" : "")) + '">' + l + '</div>';
+}).join("");
+
+var img = document.getElementById("testImg");
+var statusEl = document.getElementById("imgStatus");
+img.addEventListener("load", function () {
+  statusEl.innerHTML = '<span class="ok">✓ נטענה בהצלחה - גודל אמיתי: ' + img.naturalWidth + 'x' + img.naturalHeight + '</span>';
+});
+img.addEventListener("error", function () {
+  statusEl.innerHTML = '<span class="bad">✗ נכשלה בטעינה (שגיאת רשת/404)</span>';
+});
+setTimeout(function () {
+  if (statusEl.textContent === "בודק...") {
+    statusEl.innerHTML = '<span class="bad">✗ תקוע - לא load ולא error אחרי 3 שניות</span>';
+  }
+}, 3000);
+
+function measureBox(selector, outId) {
+  var el = document.querySelector(selector);
+  var r = el.getBoundingClientRect();
+  var imgEl = el.querySelector("img");
+  var imgR = imgEl.getBoundingClientRect();
+  document.getElementById(outId).textContent =
+    "תיבה: רוחב=" + Math.round(r.width) + " גובה=" + Math.round(r.height) +
+    " | תמונה-בפנים: רוחב=" + Math.round(imgR.width) + " גובה=" + Math.round(imgR.height);
+}
+setTimeout(function () {
+  measureBox(".box", "box1measure");
+  measureBox(".box2", "box2measure");
+}, 500);
+</script>
+</body>
+</html>
