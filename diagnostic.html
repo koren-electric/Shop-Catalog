@@ -29,6 +29,18 @@
   .real-card-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
   .real-media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(200,95,34,0.4) 0 4px, transparent 4px 20px), #ffe0c2; }
   .real-card-media[data-has-image="true"] .real-media-fallback { display: none; }
+
+  /* שחזור-זהה-מוחלט של המבנה+CSS האמיתי מ-kiosk_template.html: button.card (flex) >
+     span.card-media (block/relative/height0/padding-top) > img+fallback, בתוך
+     display:grid בדיוק כמו .product-grid - כדי לבודד אם ה-grid/flex-nesting עצמו
+     (ולא רק ה-card-media שכבר נבדק בבידוד) הוא הגורם. */
+  .real-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .real-grid .card { background: #fff; border: 2px solid #ccc; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .real-grid .card-media { display: block; position: relative; overflow: hidden; height: 0; padding-top: 75%; background: #fff; border-bottom: 1px solid #ccc; }
+  .real-grid .card-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .real-grid .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(200,95,34,0.4) 0 4px, transparent 4px 20px), #ffe0c2; }
+  .real-grid .card-media[data-has-image="true"] .media-fallback { display: none; }
+  .real-grid .card-body { padding: 8px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -86,6 +98,25 @@
       '<img src="images/KLF03/1.png" alt="">' +
       '<span class="real-media-fallback">אני ה-FALLBACK (אם אתה רואה אותי, זו הבעיה)</span>' +
     '</button>';
+</script>
+
+<div class="row">
+  <div class="label">9. שחזור-מלא: 4 כרטיסים בתוך display:grid (בדיוק כמו הקטלוג האמיתי, קטגוריה שלמה עם 4 בשורה):</div>
+  <div class="real-grid" id="realGridHost"></div>
+  <div id="realGridVerdict" class="measure"></div>
+</div>
+
+<script>
+  var demoSkus = ["KLF03", "SKE735", "K0250840", "LKT640"];
+  document.getElementById("realGridHost").innerHTML = demoSkus.map(function (sku) {
+    return '<button class="card" data-sku="' + sku + '">' +
+      '<span class="card-media" data-has-image="true">' +
+        '<img src="images/KLF03/1.png" alt="">' +
+        '<span class="media-fallback">FALLBACK</span>' +
+      '</span>' +
+      '<span class="card-body">מוצר לדוגמה ' + sku + '</span>' +
+    '</button>';
+  }).join("");
 </script>
 
 <script>
@@ -166,12 +197,27 @@ function checkRealCard() {
   document.getElementById("realCardVerdict").innerHTML = lines.join("<br>");
 }
 
+function checkRealGrid() {
+  var cards = document.querySelectorAll("#realGridHost .card");
+  var lines = [];
+  cards.forEach(function (card, i) {
+    var img = card.querySelector("img");
+    var r = img.getBoundingClientRect();
+    var visible = r.width > 2 && r.height > 2;
+    lines.push("כרטיס " + (i + 1) + ": " + (visible
+      ? '<span class="ok">✓ תמונה בגודל ' + Math.round(r.width) + "x" + Math.round(r.height) + '</span>'
+      : '<span class="bad">✗ גודל אפס/כמעט-אפס (' + Math.round(r.width) + "x" + Math.round(r.height) + ")</span>"));
+  });
+  document.getElementById("realGridVerdict").innerHTML = lines.join("<br>");
+}
+
 setTimeout(function () {
   measureBox(".box", "box1measure");
   measureBox(".box2", "box2measure");
   measureBoxIn(document.getElementById("dynLazyBox"), "dynLazyMeasure");
   measureBoxIn(document.getElementById("dynNoLazyBox"), "dynNoLazyMeasure");
   checkRealCard();
+  checkRealGrid();
 }, 1200);
 </script>
 </body>
