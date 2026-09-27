@@ -551,7 +551,13 @@
 
   function mediaMarkup(imgSrc) {
     if (imgSrc) {
-      return '<img src="' + escapeAttr(imgSrc) + '" alt="" loading="lazy" onerror="handleMediaError(this)"><span class="media-fallback">' + placeholderIcon + '</span>';
+      /* אין loading="lazy" בכוונה - נתגלה 2026-09-27 שזה גרם לכשל-טעינה-מוחלט (התמונה
+         לעולם לא נטענת) בדפדפן ה-Tizen/Samsung-TV האמיתי של הקיוסק, כנראה כי מנגנון
+         ה-intersection-observer הפנימי שלו מתבלבל מתמונות שנוספות דינמית ל-DOM בתוך
+         קונטיינר position:absolute (ר' galleryHtml הסמוך, שמעולם לא השתמש ב-lazy
+         ולכן מעולם לא סבל מהתקלה הזו - הכרטיסים ברשת ובמבצעים-חמים הם היחידים
+         שהשתמשו ב-lazy, וגם היחידים שדיווחו על הבעיה). */
+      return '<img src="' + escapeAttr(imgSrc) + '" alt="" onerror="handleMediaError(this)"><span class="media-fallback">' + placeholderIcon + '</span>';
     }
     return '<span class="media-fallback">' + placeholderIcon + '</span>';
   }

@@ -56,6 +56,24 @@
   <div id="box2measure" class="measure"></div>
 </div>
 
+<div class="row">
+  <div class="label">6. תיבה שנבנתה דינמית ב-JS (כמו בקטלוג האמיתי) עם loading="lazy":</div>
+  <div id="dynLazyBox"></div>
+  <div id="dynLazyMeasure" class="measure"></div>
+</div>
+
+<div class="row">
+  <div class="label">7. תיבה שנבנתה דינמית ב-JS (כמו בקטלוג האמיתי) בלי loading="lazy":</div>
+  <div id="dynNoLazyBox"></div>
+  <div id="dynNoLazyMeasure" class="measure"></div>
+</div>
+
+<script>
+  document.getElementById("dynLazyBox").innerHTML =
+    '<div class="box"><img src="images/KLF03/1.png" alt="" loading="lazy"></div>';
+  document.getElementById("dynNoLazyBox").innerHTML =
+    '<div class="box"><img src="images/KLF03/1.png" alt=""></div>';
+</script>
 <script>
 document.getElementById("uaBox").textContent = navigator.userAgent;
 
@@ -96,10 +114,23 @@ function measureBox(selector, outId) {
     "תיבה: רוחב=" + Math.round(r.width) + " גובה=" + Math.round(r.height) +
     " | תמונה-בפנים: רוחב=" + Math.round(imgR.width) + " גובה=" + Math.round(imgR.height);
 }
+function measureBoxIn(container, outId) {
+  var el = container.querySelector(".box");
+  var r = el.getBoundingClientRect();
+  var imgEl = el.querySelector("img");
+  var imgR = imgEl.getBoundingClientRect();
+  var visible = imgR.width > 0 && imgR.height > 0;
+  document.getElementById(outId).innerHTML =
+    (visible ? '<span class="ok">✓ נראית</span>' : '<span class="bad">✗ גודל אפס</span>') +
+    " | תיבה: רוחב=" + Math.round(r.width) + " גובה=" + Math.round(r.height) +
+    " | תמונה-בפנים: רוחב=" + Math.round(imgR.width) + " גובה=" + Math.round(imgR.height);
+}
 setTimeout(function () {
   measureBox(".box", "box1measure");
   measureBox(".box2", "box2measure");
-}, 500);
+  measureBoxIn(document.getElementById("dynLazyBox"), "dynLazyMeasure");
+  measureBoxIn(document.getElementById("dynNoLazyBox"), "dynNoLazyMeasure");
+}, 1200);
 </script>
 </body>
 </html>
