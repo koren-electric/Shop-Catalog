@@ -76,6 +76,18 @@
   .grid4 .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(0,102,153,0.4) 0 4px, transparent 4px 20px), #cceeff; }
   .grid4 .card-media[data-has-image="true"] .media-fallback { display: none; }
   .grid4 .card-body { padding: 8px; font-size: 13px; }
+
+  /* סעיף 14 - גישה רדיקלית (סבב שישי): .card הופך ל-display:block לגמרי (בלי flex
+     כלל!), card-media מקבלת aspect-ratio+min-height כ-block-element רגיל.
+     card-body עדיין flex-column בפני-עצמה (לצרכיה הפנימיים), אבל היא כבר לא
+     flex-item של .card - .card עצמו הוא block-parent פשוט. */
+  .grid5 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid5 .card { background: #fff; border: 2px solid #900; border-radius: 12px; overflow: hidden; display: block; min-width: 0; }
+  .grid5 .card-media { display: block; position: relative; overflow: hidden; aspect-ratio: 4/3; min-height: 90px; background: #fff; border-bottom: 1px solid #ccc; }
+  .grid5 .card-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .grid5 .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(153,0,0,0.4) 0 4px, transparent 4px 20px), #ffcccc; }
+  .grid5 .card-media[data-has-image="true"] .media-fallback { display: none; }
+  .grid5 .card-body { padding: 8px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -209,6 +221,24 @@
 </script>
 
 <div class="row" style="border-color:#900;">
+  <div class="label">14. שחזור-מלא (גישה רדיקלית ביותר, סבב שישי - .card ללא flex בכלל, block מלא, aspect-ratio על card-media):</div>
+  <div class="grid5" id="grid5Host"></div>
+  <div id="grid5Verdict" class="measure"></div>
+</div>
+
+<script>
+  document.getElementById("grid5Host").innerHTML = demoSkus.map(function (sku) {
+    return '<button class="card" data-sku="' + sku + '">' +
+      '<span class="card-media" data-has-image="true">' +
+        '<img src="images/KLF03/1.png" alt="">' +
+        '<span class="media-fallback">FALLBACK</span>' +
+      '</span>' +
+      '<span class="card-body">מוצר לדוגמה ' + sku + '</span>' +
+    '</button>';
+  }).join("");
+</script>
+
+<div class="row" style="border-color:#900;">
   <div class="label">11. שגיאות JS שנתפסו (אם ריק - לא נתפסה שום שגיאה):</div>
   <div id="jsErrorsBox" class="ok">לא נתפסה אף שגיאה עד כה</div>
 </div>
@@ -329,6 +359,7 @@ function checkRealGrid() { checkGridGeneric("#realGridHost", "realGridVerdict");
 function checkGrid2() { checkGridGeneric("#grid2Host", "grid2Verdict"); }
 function checkGrid3() { checkGridGeneric("#grid3Host", "grid3Verdict"); }
 function checkGrid4() { checkGridGeneric("#grid4Host", "grid4Verdict"); }
+function checkGrid5() { checkGridGeneric("#grid5Host", "grid5Verdict"); }
 
 setTimeout(function () {
   measureBox(".box", "box1measure");
@@ -340,6 +371,7 @@ setTimeout(function () {
   checkGrid2();
   checkGrid3();
   checkGrid4();
+  checkGrid5();
 }, 1200);
 </script>
 </body>

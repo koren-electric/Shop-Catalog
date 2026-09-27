@@ -81,12 +81,10 @@
      בלי צ'יפים/צבעים/תגית-זמינות, מסגרת כתומה בולטת להבחנה ברורה מכרטיסי-הרשת. */
   .featured-scroll .card.featured-card {
     width: clamp(104px, 12vw, 130px); min-width: clamp(104px, 12vw, 130px); flex: none; scroll-snap-align: start;
-    /* min-height תואם ל-width (1:1) - אותו עיקרון-תיקון כמו .card הרגיל: ה-card
-       עצמו מקבל גובה-מינימלי מפורש, card-media (flex:1 1 auto, יורשת מה-.card-media
-       הגנרי) רק ממלאת מה שנשאר. */
-    min-height: clamp(104px, 12vw, 130px);
     border: 2px solid var(--koren-orange); box-shadow: 0 5px 16px rgba(200,95,34,0.22);
   }
+  /* 1:1 (לא 4:3 של .card-media הרגילה) - featured-card מרובעת, לא 4:3. */
+  .featured-card .card-media { aspect-ratio: 1 / 1; }
   .featured-card .card-media img { padding: 6px; }
   .featured-card .card-body { padding: 7px 8px 9px; gap: 4px; }
   .featured-card .card-title {
@@ -190,11 +188,27 @@
   }
 
   .card {
+    /* ⚠️ תיעוד-כשלים, 2026-09-27 (אותה שיחה, 6 סבבי-תיקון על .card-media לבדה) -
+       כל הגישות הבאות ל-height/min-height/flex על card-media נכשלו על המכשיר
+       האמיתי (Tizen/Samsung TV browser), מאומת ע"י מדידות-פועל בדף-אבחון:
+       (1) aspect-ratio על card-media - קרס לגובה-0. (2) height:0+padding-top% -
+       עבד מבודד, נכשל בתוך display:grid. (3) height ב-vw - עדיין 0. (4) +flex-shrink:0
+       - עדיין 0. (5) min-height על .card עצמו + flex:1 1 auto על card-media
+       (מבוסס-.tile) - עדיין 0/קרס-רוחב-במקום-גובה בסבב הבא.
+       **המסקנה הסופית**: הבעיה היא ש-`.card` הוא בכלל flex-container
+       (display:flex;flex-direction:column) בתוך grid-item - כל הקומבינציה של
+       flex-basis/flex-shrink/min-height בתוך flex-column-שיושב-בתוך-grid-column
+       מתנהגת לא-אמין על המכשיר הזה, לא משנה אילו ערכים נותנים לצדדים. הפתרון
+       הרדיקלי-אך-הבטוח: **לוותר על flex לגמרי ברמת .card** - חזרה ל-block-layout
+       הרגיל/הבסיסי ביותר, שאין לו שום אלגוריתם-שיוך-שטח-מעגלי כזה. card-media
+       מקבלת aspect-ratio (עכשיו על block-element רגיל, לא flex-item - שונה
+       מהותית מניסיון (1) שהיה בתוך flex-column) + min-height כ-fallback,
+       בדיוק כמו .tile עצמו (שגם הוא display:flex אבל flex-item-בודד-בתוכו, לא
+       relevant כאן). card-body ממשיכה display:flex;flex-direction:column
+       (לכפתורי/צ'יפים הפנימיים שלה) - זה נשאר תקין כי .card-body היא עצמה
+       flex-container-בפני-עצמה, לא-תלויה בכך שה-.card שמעליה הוא flex. */
     background: var(--koren-surface); border: 1px solid var(--koren-border); border-radius: 18px; overflow: hidden;
-    cursor: pointer; display: flex; flex-direction: column; text-align: right; min-width: 0;
-    /* min-height מפורש על ה-grid-item/flex-item עצמו (לא רק על card-media הפנימית) -
-       ר' ההערה הארוכה ליד .card-media למטה להסבר-המלא למה זה השינוי-המכריע. */
-    min-height: clamp(180px, 32vw, 360px);
+    cursor: pointer; display: block; text-align: right; min-width: 0;
     box-shadow: 0 3px 12px rgba(33,23,17,0.06); transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
   .card:active { transform: scale(0.97); box-shadow: 0 2px 6px rgba(33,23,17,0.08); }
@@ -203,24 +217,7 @@
     display: block; position: relative; overflow: hidden;
   }
   .card-media {
-    /* ⚠️ תיעוד-כשלים חשוב, 2026-09-27 (אותה שיחה, 5 סבבי-תיקון) - כל הגישות הבאות
-       למתן height ישיר ל-card-media עצמה נכשלו על המכשיר האמיתי (Tizen/Samsung TV
-       browser), מאומת ע"י מדידות-פועל דרך דף-אבחון (לא ניחוש):
-       (1) CSS `aspect-ratio` - קרס לגובה-0 לגמרי.
-       (2) height:0+padding-top:X% (אחוז) - עבד בבדיקת-בידוד, נכשל בתוך display:grid.
-       (3) height ישיר ב-vw (clamp) - עדיין קרס לגובה-0, גם עם flex-shrink:0/flex-grow:0
-           נוספים (ניסיון-4) - עדיין קרס.
-       **המסקנה, אחרי 4 ניסיונות כושלים על אותה שכבה**: הבעיה לא בשיטת-חישוב-הגובה
-       של card-media עצמה בכלל - היא בכך ש-.card (ה-grid-item/flex-parent) עצמו לא
-       מקבל שום height/aspect-ratio מפורש, ומסתמך-בעקיפין על card-media הפנימית כדי
-       "לדעת" כמה גבוה להיות - תלות-מעגלית. **הפתרון שבאמת עובד, מבוסס-על .tile
-       שכבר תמיד עבד נכון על המכשיר הזה** (ר' .tile/.tile-photo למעלה): לתת ל-.card
-       עצמו min-height מפורש (למעלה), ול-card-media רק flex:1 1 auto;min-height:0 -
-       בדיוק אותו יחס בין .tile ל-.tile-photo. card-media כבר לא "אחראית" לקבוע את
-       הגובה הכולל של הכרטיס - היא רק ממלאת את מה שנשאר אחרי card-body.
-       `display:block` עדיין נדרש - אלה <span>-ים (inline כברירת מחדל), ו-
-       position:absolute-children של אב inline לא ממוקמים באמינות בדפדפן הזה. */
-    flex: 1 1 auto; min-height: 0;
+    aspect-ratio: 4 / 3; min-height: 90px;
     background: #ffffff; border-bottom: 1px solid var(--koren-border);
   }
   .sheet-media {
@@ -269,10 +266,10 @@
     padding: 4px 9px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   }
 
-  /* flex:0 0 auto (לא 1 1 auto) - card-body תופסת בדיוק את-content-שלה, לא מתחרה
-     עם card-media (flex:1 1 auto) על שטח פנוי בתוך .card. ר' ההערה הארוכה ליד
-     .card-media למעלה - זה חלק מאותו תיקון (2026-09-27, סבב חמישי). */
-  .card-body { padding: clamp(12px, 1.6vw, 18px); display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+  /* .card-body היא flex-container בפני-עצמה (לכפתורי/צ'יפים/footer הפנימיים שלה,
+     כולל card-footer's margin-top:auto) - זה לא-תלוי בכך ש-.card-עצמה (ה-parent)
+     כבר block ולא flex, ר' ההערה הארוכה ליד .card-media למעלה. */
+  .card-body { padding: clamp(12px, 1.6vw, 18px); display: flex; flex-direction: column; gap: 8px; }
   .card-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(14px, 1.5vw, 17px); line-height: 1.25; }
   .card-attrs { display: flex; flex-wrap: wrap; gap: 5px; }
   .chip { font-size: clamp(8.5px, 0.78vw, 10.5px); color: var(--koren-ink-soft); background: var(--koren-surface-2); border: 1px solid var(--koren-border); border-radius: 999px; padding: 3px 8px; white-space: nowrap; }
