@@ -41,6 +41,17 @@
   .real-grid .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(200,95,34,0.4) 0 4px, transparent 4px 20px), #ffe0c2; }
   .real-grid .card-media[data-has-image="true"] .media-fallback { display: none; }
   .real-grid .card-body { padding: 8px; font-size: 13px; }
+
+  /* סעיף 10 - בדיוק אותו מבנה כמו סעיף 9, אבל עם ה-CSS העדכני-בפועל (2026-09-27,
+     גרסה שנייה): height קבוע ב-vw במקום padding-top אחוזי, בדיוק כפי ש-kiosk_template.html
+     מגדיר כרגע. */
+  .grid2 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid2 .card { background: #fff; border: 2px solid #060; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .grid2 .card-media { display: block; position: relative; overflow: hidden; height: clamp(90px, 16.2vw, 220px); background: #fff; border-bottom: 1px solid #ccc; }
+  .grid2 .card-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .grid2 .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(0,120,34,0.4) 0 4px, transparent 4px 20px), #d7ffd9; }
+  .grid2 .card-media[data-has-image="true"] .media-fallback { display: none; }
+  .grid2 .card-body { padding: 8px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -101,7 +112,7 @@
 </script>
 
 <div class="row">
-  <div class="label">9. שחזור-מלא: 4 כרטיסים בתוך display:grid (בדיוק כמו הקטלוג האמיתי, קטגוריה שלמה עם 4 בשורה):</div>
+  <div class="label">9. שחזור-מלא (שיטה ישנה, padding-top): 4 כרטיסים בתוך display:grid (בדיוק כמו הקטלוג האמיתי, קטגוריה שלמה עם 4 בשורה):</div>
   <div class="real-grid" id="realGridHost"></div>
   <div id="realGridVerdict" class="measure"></div>
 </div>
@@ -117,6 +128,37 @@
       '<span class="card-body">מוצר לדוגמה ' + sku + '</span>' +
     '</button>';
   }).join("");
+</script>
+
+<div class="row" style="border-color:#060;">
+  <div class="label">10. שחזור-מלא (שיטה חדשה, vw-height - זה מה שחי כרגע באתר האמיתי): 4 כרטיסים, אותו מבנה בדיוק:</div>
+  <div class="grid2" id="grid2Host"></div>
+  <div id="grid2Verdict" class="measure"></div>
+</div>
+
+<script>
+  document.getElementById("grid2Host").innerHTML = demoSkus.map(function (sku) {
+    return '<button class="card" data-sku="' + sku + '">' +
+      '<span class="card-media" data-has-image="true">' +
+        '<img src="images/KLF03/1.png" alt="">' +
+        '<span class="media-fallback">FALLBACK</span>' +
+      '</span>' +
+      '<span class="card-body">מוצר לדוגמה ' + sku + '</span>' +
+    '</button>';
+  }).join("");
+</script>
+
+<div class="row" style="border-color:#900;">
+  <div class="label">11. שגיאות JS שנתפסו (אם ריק - לא נתפסה שום שגיאה):</div>
+  <div id="jsErrorsBox" class="ok">לא נתפסה אף שגיאה עד כה</div>
+</div>
+<script>
+  window.__jsErrors = [];
+  window.addEventListener("error", function (e) {
+    window.__jsErrors.push((e.message || "שגיאה") + " @ " + (e.filename || "?") + ":" + (e.lineno || "?"));
+    document.getElementById("jsErrorsBox").innerHTML =
+      '<span class="bad">נתפסו ' + window.__jsErrors.length + ' שגיאות:</span><br>' + window.__jsErrors.join("<br>");
+  });
 </script>
 
 <script>
@@ -135,7 +177,10 @@ var supportLines = [
   "aspect-ratio: " + supports("aspect-ratio", "1/1"),
   "display:flex: " + supports("display", "flex"),
   "position:absolute + inset: " + supports("inset", "0"),
-  "padding-top percentage (always true if CSS works at all): " + supports("padding-top", "50%")
+  "padding-top percentage (always true if CSS works at all): " + supports("padding-top", "50%"),
+  "object-fit:contain: " + supports("object-fit", "contain"),
+  "CSS custom properties (var()): " + supports("color", "var(--x)"),
+  "clamp(): " + supports("width", "clamp(1px,1vw,2px)")
 ];
 document.getElementById("cssSupport").innerHTML = supportLines.map(function (l) {
   var ok = l.indexOf("true") !== -1;
@@ -197,19 +242,30 @@ function checkRealCard() {
   document.getElementById("realCardVerdict").innerHTML = lines.join("<br>");
 }
 
-function checkRealGrid() {
-  var cards = document.querySelectorAll("#realGridHost .card");
+function checkGridGeneric(hostSelector, outId) {
+  var cards = document.querySelectorAll(hostSelector + " .card");
   var lines = [];
   cards.forEach(function (card, i) {
     var img = card.querySelector("img");
+    var mediaEl = card.querySelector(".card-media");
+    var mediaR = mediaEl.getBoundingClientRect();
     var r = img.getBoundingClientRect();
-    var visible = r.width > 2 && r.height > 2;
-    lines.push("כרטיס " + (i + 1) + ": " + (visible
-      ? '<span class="ok">✓ תמונה בגודל ' + Math.round(r.width) + "x" + Math.round(r.height) + '</span>'
-      : '<span class="bad">✗ גודל אפס/כמעט-אפס (' + Math.round(r.width) + "x" + Math.round(r.height) + ")</span>"));
+    var cs = getComputedStyle(img);
+    var visible = r.width > 2 && r.height > 2 && cs.display !== "none" && cs.visibility !== "hidden";
+    var topEl = document.elementFromPoint(mediaR.left + mediaR.width / 2, mediaR.top + mediaR.height / 2);
+    var topIsImg = topEl === img;
+    var decoded = img.complete && img.naturalWidth > 0;
+    lines.push("כרטיס " + (i + 1) + ": תיבה=" + Math.round(mediaR.width) + "x" + Math.round(mediaR.height) +
+      " | תמונה=" + Math.round(r.width) + "x" + Math.round(r.height) +
+      " | decode=" + (decoded ? ("✓ " + img.naturalWidth + "x" + img.naturalHeight) : "✗ נכשל/עדיין-טוען") +
+      " | display=" + cs.display + " visibility=" + cs.visibility + " opacity=" + cs.opacity +
+      " | elementFromPoint=" + (topIsImg ? "תמונה✓" : (topEl ? topEl.tagName + "." + topEl.className : "כלום")) +
+      " | " + (visible ? '<span class="ok">✓ נראית</span>' : '<span class="bad">✗ לא נראית</span>'));
   });
-  document.getElementById("realGridVerdict").innerHTML = lines.join("<br>");
+  document.getElementById(outId).innerHTML = lines.join("<br>");
 }
+function checkRealGrid() { checkGridGeneric("#realGridHost", "realGridVerdict"); }
+function checkGrid2() { checkGridGeneric("#grid2Host", "grid2Verdict"); }
 
 setTimeout(function () {
   measureBox(".box", "box1measure");
@@ -218,6 +274,7 @@ setTimeout(function () {
   measureBoxIn(document.getElementById("dynNoLazyBox"), "dynNoLazyMeasure");
   checkRealCard();
   checkRealGrid();
+  checkGrid2();
 }, 1200);
 </script>
 </body>
