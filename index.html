@@ -83,7 +83,7 @@
     width: clamp(104px, 12vw, 130px); min-width: clamp(104px, 12vw, 130px); flex: none; scroll-snap-align: start;
     border: 2px solid var(--koren-orange); box-shadow: 0 5px 16px rgba(200,95,34,0.22);
   }
-  .featured-card .card-media { padding-top: 100%; }
+  .featured-card .card-media { height: clamp(104px, 12vw, 130px); }
   .featured-card .card-media img { padding: 6px; }
   .featured-card .card-body { padding: 7px 8px 9px; gap: 4px; }
   .featured-card .card-title {
@@ -194,27 +194,28 @@
   .card:active { transform: scale(0.97); box-shadow: 0 2px 6px rgba(33,23,17,0.08); }
 
   .card-media, .sheet-media {
-    /* height:0 + padding-top:X% is used instead of the CSS `aspect-ratio` property on
-       purpose - the Tizen/Samsung-Internet browsers actually used on the kiosk screen
-       don't support `aspect-ratio` (confirmed 2026-09-27: cards collapsed to 0 height,
-       showing no photo AND no fallback icon, while `.tile` - which already had an
-       explicit min-height as a belt-and-suspenders fallback - kept working). This old
-       padding-percentage trick works in every browser back to early 2000s CSS support.
-       `display:block` is required here too: these are <span> elements (inline by
-       default), and position:absolute children of an inline positioned ancestor are
-       NOT reliably placed in older browser engines even though the padding-top box
-       itself renders visually correctly (confirmed 2026-09-27, same session - proportions
-       looked right but photos still didn't render until this was added; .tile-photo,
-       which already had `display:flex`, never had this problem). */
-    display: block; position: relative; overflow: hidden; height: 0;
+    /* גובה נגזר מרוחב-המסך (vw) ולא מ-aspect-ratio/padding-percentage-of-own-width -
+       שתי הגישות האחרות שכבר נוסו נכשלו על המכשיר האמיתי (Tizen/Samsung TV browser),
+       כל אחת מסיבה שונה שאומתה בפועל ב-2026-09-27, אותה שיחה:
+       (1) CSS `aspect-ratio` - קרס לגובה-0 לגמרי (לא הראה תמונה ולא fallback).
+       (2) height:0+padding-top:X% (אחוז-מהרוחב-של-עצמו) - עבד נכון בבדיקת-בידוד פשוטה,
+           אבל בתוך display:grid (בדיוק כמו .product-grid האמיתי) יצא עם גובה שגוי
+           לגמרי (למשל 124x20 במקום 124x93 בפועל) - הרוחב הסופי של grid-item נפתר
+           רק בשלב מאוחר של אלגוריתם ה-grid-sizing, וה-padding-percentage מחושב לפי
+           רוחב-ביניים-שגוי לפני שהgrid מסיים, ולא מתעדכן מחדש.
+       height ב-vw נגזר מרוחב-כל-המסך (viewport), לא מרוחב-ה-container-של-עצמו - זה
+       עוקף לגמרי את שרשרת-התלות-המעגלית (grid→card→card-media) ששברה את שתי הגישות
+       הקודמות. `display:block` עדיין נדרש - אלה <span>-ים (inline כברירת מחדל), ו-
+       position:absolute-children של אב inline לא ממוקמים באמינות בדפדפן הזה. */
+    display: block; position: relative; overflow: hidden;
   }
-  .card-media { padding-top: 75%; background: #ffffff; border-bottom: 1px solid var(--koren-border); }
+  .card-media { height: clamp(90px, 16.2vw, 220px); background: #ffffff; border-bottom: 1px solid var(--koren-border); }
   .sheet-media {
-    padding-top: 100%; border-radius: 22px; border: 1px solid var(--koren-border);
+    height: clamp(210px, 30vw, 340px); border-radius: 22px; border: 1px solid var(--koren-border);
     background: #ffffff;
     flex: 0 0 clamp(210px, 30vw, 340px);
   }
-  @media (max-width: 640px) { .sheet-media { flex-basis: min(260px, 62vw); } }
+  @media (max-width: 640px) { .sheet-media { flex-basis: min(260px, 62vw); height: min(260px, 62vw); } }
   .card-media img, .sheet-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
   .card-media img { padding: 10px; }
   .sheet-media img { padding: 14px; }
