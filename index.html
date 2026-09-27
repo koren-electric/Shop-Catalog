@@ -200,14 +200,21 @@
        (1) CSS `aspect-ratio` - קרס לגובה-0 לגמרי (לא הראה תמונה ולא fallback).
        (2) height:0+padding-top:X% (אחוז-מהרוחב-של-עצמו) - עבד נכון בבדיקת-בידוד פשוטה,
            אבל בתוך display:grid (בדיוק כמו .product-grid האמיתי) יצא עם גובה שגוי
-           לגמרי (למשל 124x20 במקום 124x93 בפועל) - הרוחב הסופי של grid-item נפתר
-           רק בשלב מאוחר של אלגוריתם ה-grid-sizing, וה-padding-percentage מחושב לפי
-           רוחב-ביניים-שגוי לפני שהgrid מסיים, ולא מתעדכן מחדש.
-       height ב-vw נגזר מרוחב-כל-המסך (viewport), לא מרוחב-ה-container-של-עצמו - זה
-       עוקף לגמרי את שרשרת-התלות-המעגלית (grid→card→card-media) ששברה את שתי הגישות
-       הקודמות. `display:block` עדיין נדרש - אלה <span>-ים (inline כברירת מחדל), ו-
+           לגמרי (למשל 124x20 במקום 124x93 בפועל).
+       (3) height ב-vw (הגרסה הקודמת של הקוד הזה) - עדיין קרס ל-0 גובה בפועל על המכשיר,
+           מדף-אבחון עם מדידות אמיתיות (2026-09-27, סבב נוסף) - גם height מוצהר-ישירות
+           לא מונע קריסה.
+       **השורש האמיתי, אושר ע"י המדידות**: .card הוא flex-column (display:flex;
+       flex-direction:column), ו-.card-media/.sheet-media הם ה-flex-item הראשון בתוכו.
+       flex-item מקבל כברירת-מחדל flex-shrink:1 - זה מרשה לדפדפן לכווץ אותו מתחת
+       ל-height המוצהר אם הוא "מחשיב" שאין מספיק מקום (ה-.card עצמו grid-item בלי
+       height מפורש משלו, רק content-sized) - חלק מדפדפני-Tizen/Samsung ידועים
+       כאגרסיביים יותר בכיווץ-flex מדפדפני-דסקטופ. flex-shrink:0 (וflex-grow:0, ליתר
+       ביטחון) מבטלים את זה לחלוטין - הגובה שנקבע נשאר קבוע, לא משנה מה קורה
+       באלגוריתם ה-flex-sizing מסביב.
+       `display:block` עדיין נדרש - אלה <span>-ים (inline כברירת מחדל), ו-
        position:absolute-children של אב inline לא ממוקמים באמינות בדפדפן הזה. */
-    display: block; position: relative; overflow: hidden;
+    display: block; position: relative; overflow: hidden; flex-shrink: 0; flex-grow: 0;
   }
   .card-media { height: clamp(90px, 16.2vw, 220px); background: #ffffff; border-bottom: 1px solid var(--koren-border); }
   .sheet-media {

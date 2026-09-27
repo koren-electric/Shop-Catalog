@@ -52,6 +52,17 @@
   .grid2 .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(0,120,34,0.4) 0 4px, transparent 4px 20px), #d7ffd9; }
   .grid2 .card-media[data-has-image="true"] .media-fallback { display: none; }
   .grid2 .card-body { padding: 8px; font-size: 13px; }
+
+  /* סעיף 12 - כמו סעיף 10, אבל עם flex-shrink:0/flex-grow:0 (התיקון החדש, 2026-09-27
+     סבב שלישי) - התיאוריה: .card הוא flex-column, וה-media בתוכו מתכווץ ל-0 בגלל
+     flex-shrink:1 (ברירת המחדל) על המכשיר האמיתי, למרות height מוצהר. */
+  .grid3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid3 .card { background: #fff; border: 2px solid #609; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .grid3 .card-media { display: block; position: relative; overflow: hidden; height: clamp(90px, 16.2vw, 220px); background: #fff; border-bottom: 1px solid #ccc; flex-shrink: 0; flex-grow: 0; }
+  .grid3 .card-media img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .grid3 .media-fallback { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(96,0,153,0.4) 0 4px, transparent 4px 20px), #ecd7ff; }
+  .grid3 .card-media[data-has-image="true"] .media-fallback { display: none; }
+  .grid3 .card-body { padding: 8px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -138,6 +149,24 @@
 
 <script>
   document.getElementById("grid2Host").innerHTML = demoSkus.map(function (sku) {
+    return '<button class="card" data-sku="' + sku + '">' +
+      '<span class="card-media" data-has-image="true">' +
+        '<img src="images/KLF03/1.png" alt="">' +
+        '<span class="media-fallback">FALLBACK</span>' +
+      '</span>' +
+      '<span class="card-body">מוצר לדוגמה ' + sku + '</span>' +
+    '</button>';
+  }).join("");
+</script>
+
+<div class="row" style="border-color:#609;">
+  <div class="label">11.5. שחזור-מלא (שיטה חדשה ביותר, flex-shrink:0 - זה מה שחי כרגע באתר האמיתי אחרי סבב שלישי): 4 כרטיסים:</div>
+  <div class="grid3" id="grid3Host"></div>
+  <div id="grid3Verdict" class="measure"></div>
+</div>
+
+<script>
+  document.getElementById("grid3Host").innerHTML = demoSkus.map(function (sku) {
     return '<button class="card" data-sku="' + sku + '">' +
       '<span class="card-media" data-has-image="true">' +
         '<img src="images/KLF03/1.png" alt="">' +
@@ -251,21 +280,23 @@ function checkGridGeneric(hostSelector, outId) {
     var mediaR = mediaEl.getBoundingClientRect();
     var r = img.getBoundingClientRect();
     var cs = getComputedStyle(img);
-    var visible = r.width > 2 && r.height > 2 && cs.display !== "none" && cs.visibility !== "hidden";
     var topEl = document.elementFromPoint(mediaR.left + mediaR.width / 2, mediaR.top + mediaR.height / 2);
     var topIsImg = topEl === img;
     var decoded = img.complete && img.naturalWidth > 0;
-    lines.push("כרטיס " + (i + 1) + ": תיבה=" + Math.round(mediaR.width) + "x" + Math.round(mediaR.height) +
-      " | תמונה=" + Math.round(r.width) + "x" + Math.round(r.height) +
-      " | decode=" + (decoded ? ("✓ " + img.naturalWidth + "x" + img.naturalHeight) : "✗ נכשל/עדיין-טוען") +
-      " | display=" + cs.display + " visibility=" + cs.visibility + " opacity=" + cs.opacity +
+    var mediaCollapsed = mediaR.height < 5;
+    var visible = topIsImg && r.width > 2 && r.height > 2 && !mediaCollapsed;
+    lines.push("כרטיס " + (i + 1) + ": תיבת-מדיה=" + Math.round(mediaR.width) + "x" + Math.round(mediaR.height) +
+      (mediaCollapsed ? ' <span class="bad">(קרסה!)</span>' : '') +
+      " | תמונה-בפועל=" + Math.round(r.width) + "x" + Math.round(r.height) +
+      " | קובץ-מקורי=" + (decoded ? (img.naturalWidth + "x" + img.naturalHeight) : "לא-נטען") +
       " | elementFromPoint=" + (topIsImg ? "תמונה✓" : (topEl ? topEl.tagName + "." + topEl.className : "כלום")) +
-      " | " + (visible ? '<span class="ok">✓ נראית</span>' : '<span class="bad">✗ לא נראית</span>'));
+      " | " + (visible ? '<span class="ok">✓ תקין</span>' : '<span class="bad">✗ שבור</span>'));
   });
   document.getElementById(outId).innerHTML = lines.join("<br>");
 }
 function checkRealGrid() { checkGridGeneric("#realGridHost", "realGridVerdict"); }
 function checkGrid2() { checkGridGeneric("#grid2Host", "grid2Verdict"); }
+function checkGrid3() { checkGridGeneric("#grid3Host", "grid3Verdict"); }
 
 setTimeout(function () {
   measureBox(".box", "box1measure");
@@ -275,6 +306,7 @@ setTimeout(function () {
   checkRealCard();
   checkRealGrid();
   checkGrid2();
+  checkGrid3();
 }, 1200);
 </script>
 </body>
